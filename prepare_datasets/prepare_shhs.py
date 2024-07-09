@@ -34,15 +34,19 @@ def main():
                         help="The selected channel")
     args = parser.parse_args()
 
-
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
-
+        
+    # Get selected shhs file
     ids = pd.read_csv("selected_shhs1_files.txt", header=None, names='a')
     ids = ids['a'].values.tolist()
 
     edf_fnames = [os.path.join(args.data_dir, i + ".edf") for i in ids]
     ann_fnames = [os.path.join(args.ann_dir,  i + "-profusion.xml") for i in ids]
+    
+    # # Get all EDF and XML files from the directories
+    # edf_fnames = glob.glob(os.path.join(args.data_dir, "*.edf"))
+    # ann_fnames = glob.glob(os.path.join(args.ann_dir, "*.xml"))
 
     edf_fnames.sort()
     ann_fnames.sort()
@@ -50,6 +54,15 @@ def main():
     edf_fnames = np.asarray(edf_fnames)
     ann_fnames = np.asarray(ann_fnames)
 
+    apnea_events = [ # based on the annotation xml file
+        "Central Apnea", 
+        "Obstructive Apnea", 
+        "Mixed Apnea", 
+        "Hypopnea", 
+        "Obstructive Hypopnea", 
+        "Central Hypopnea", 
+        "Mixed Hypopnea"
+    ]
 
     for file_id in range(len(edf_fnames)):
         if os.path.exists(os.path.join(args.output_dir, edf_fnames[file_id].split('/')[-1])[:-4]+".npz"):
@@ -65,34 +78,22 @@ def main():
         raw_ch_df = raw_ch_df.to_frame()
         raw_ch_df.set_index(np.arange(len(raw_ch_df)))
 
-
-
-    ###################################################
-        labels = []
+        labels = np.zeros(len(raw_ch_df))  # Initialize labels as zero (no event)
+        
         # Read annotation and its header
         t = ET.parse(ann_fnames[file_id])
         r = t.getroot()
         faulty_File = 0
-        for i in range(len(r[4])):
-            lbl = int(r[4][i].text)
-            if lbl == 4:  # make stages N3, N4 same as N3
-                labels.append(3)
-            elif lbl == 5:  # Assign label 4 for REM stage
-                labels.append(4)
-            else:
-                labels.append(lbl)
-            if lbl > 5:  # some files may contain labels > 5 BUT not the selected ones.
-                faulty_File = 1
-
-        if faulty_File == 1:
-            print( "============================== Faulty file ==================")
-            continue
-
-        labels = np.asarray(labels)
-
-        # Remove movement and unknown stages if any
+        for event in r.findall('.//ScoredEvent'):
+            event_name = event.find('Name').text
+            if event_name in apnea_events:
+                start_time = float(event.find('Start').text) * sampling_rate
+                duration = float(event.find('Duration').text) * sampling_rate
+                start_idx = int(start_time)
+                end_idx = int(start_time + duration)
+                labels[start_idx:end_idx] = 0  # Marking apnea events with 0
+        
         raw_ch = raw_ch_df.values
-        print(raw_ch.shape)
 
         # Verify that we can split into 30-s epochs
         if len(raw_ch) % (EPOCH_SEC_SIZE * sampling_rate) != 0:
@@ -101,15 +102,13 @@ def main():
 
         # Get epochs and their corresponding labels
         x = np.asarray(np.split(raw_ch, n_epochs)).astype(np.float32)
-        y = labels.astype(np.int32)
-
-        print(x.shape)
-        print(y.shape)
+        y = np.asarray(np.split(labels, n_epochs)).astype(np.int32)
+        
         assert len(x) == len(y)
 
         # Select on sleep periods
         w_edge_mins = 30
-        nw_idx = np.where(y != 0)[0]
+        nw_idx = np.where(y.sum(axis=1) != 0)[0]
         start_idx = nw_idx[0] - (w_edge_mins * 2)
         end_idx = nw_idx[-1] + (w_edge_mins * 2)
         if start_idx < 0: start_idx = 0
@@ -129,8 +128,6 @@ def main():
         }
         np.savez(os.path.join(args.output_dir, filename), **save_dict)
         print(" ---------- Done this file ---------")
-
-
 
 if __name__ == "__main__":
     main()

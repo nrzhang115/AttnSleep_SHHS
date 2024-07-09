@@ -217,7 +217,7 @@ class BaseTrainer:
         df = pd.DataFrame(r)
         df["cohen"] = cohen_kappa_score(all_trgs, all_outs)
         df["accuracy"] = accuracy_score(all_trgs, all_outs)
-        df = df * 100
+        # df = df * 100
         file_name = self.config["name"] + "_classification_report.xlsx"
         report_Save_path = os.path.join(save_dir, file_name)
         df.to_excel(report_Save_path)

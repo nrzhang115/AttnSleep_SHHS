@@ -35,8 +35,18 @@ class LoadDataset_from_numpy(Dataset):
 
 
 def data_generator_np(training_files, subject_files, batch_size):
+    # The paths are now strings instead of lists
+    # Force the paths to be lists
+    if not isinstance(training_files, list):
+        training_files = [training_files]
+    if not isinstance(subject_files, list):
+        subject_files = [subject_files]
+        
     train_dataset = LoadDataset_from_numpy(training_files)
     test_dataset = LoadDataset_from_numpy(subject_files)
+    
+    # Print shapes to debug
+    print(f"Train dataset size: {train_dataset.len}, Test dataset size: {test_dataset.len}")
 
     # to calculate the ratio for the CAL
     all_ys = np.concatenate((train_dataset.y_data, test_dataset.y_data))

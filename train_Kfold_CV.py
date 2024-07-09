@@ -12,6 +12,7 @@ from utils.util import *
 
 import torch
 import torch.nn as nn
+import os
 
 # fix random seeds for reproducibility
 SEED = 123
@@ -49,6 +50,13 @@ def main(config, fold_id):
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
 
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
+    
+    print("Training files train_Kfold_CV:", folds_data[fold_id][0])
+    print("Testing files train_Kfold_CV:", folds_data[fold_id][1])
+    if not os.path.isfile(folds_data[fold_id][0]):
+        raise Exception(f"Training data path is not a file: {folds_data[fold_id][0]}")
+    if not os.path.isfile(folds_data[fold_id][1]):
+        raise Exception(f"Testing data path is not a file: {folds_data[fold_id][1]}")
 
     data_loader, valid_data_loader, data_count = data_generator_np(folds_data[fold_id][0],
                                                                    folds_data[fold_id][1], batch_size)
@@ -85,9 +93,7 @@ if __name__ == '__main__':
     fold_id = int(args2.fold_id)
 
     config = ConfigParser.from_args(args, fold_id, options)
-    if "shhs" in args2.np_data_dir:
-        folds_data = load_folds_data_shhs(args2.np_data_dir, config["data_loader"]["args"]["num_folds"])
-    else:
-        folds_data = load_folds_data(args2.np_data_dir, config["data_loader"]["args"]["num_folds"])
-
+    
+    folds_data = load_folds_data_shhs(args2.np_data_dir, config["data_loader"]["args"]["num_folds"])
+    
     main(config, fold_id)
