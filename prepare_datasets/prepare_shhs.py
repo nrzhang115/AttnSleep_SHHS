@@ -24,11 +24,11 @@ EPOCH_SEC_SIZE = 30
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/home/abc/shhs/polysomnography/edfs/shhs1",
+    parser.add_argument("--data_dir", type=str, default="/home/z5298768/SHHS_edfs",
                         help="File path to the PSG files.")
-    parser.add_argument("--ann_dir", type=str, default="/home/abc/shhs/polysomnography/annotations-events-profusion/shhs1",
+    parser.add_argument("--ann_dir", type=str, default="/home/z5298768/SHHS_annotations",
                         help="File path to the annotation files.")
-    parser.add_argument("--output_dir", type=str, default="/home/abc/output_npz/shhs",
+    parser.add_argument("--output_dir", type=str, default="/srv/scratch/z5298768/SHHS_data",
                         help="Directory where to save numpy files outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG C4-A1",
                         help="The selected channel")
@@ -78,7 +78,7 @@ def main():
         raw_ch_df = raw_ch_df.to_frame()
         raw_ch_df.set_index(np.arange(len(raw_ch_df)))
 
-        labels = np.zeros(len(raw_ch_df))  # Initialize labels as zero (no event)
+        labels = np.ones(len(raw_ch_df))  # Initialize labels as one (for non-apnea events and apnea events are shorter than 10s)
         
         # Read annotation and its header
         t = ET.parse(ann_fnames[file_id])
@@ -86,12 +86,15 @@ def main():
         faulty_File = 0
         for event in r.findall('.//ScoredEvent'):
             event_name = event.find('Name').text
-            if event_name in apnea_events:
+            duration_check = float(event.find('Duration').text)
+            # Check the duration of apnea events
+            if event_name in apnea_events and duration_check >= 10:
+                # Convert time durations to sample indices
                 start_time = float(event.find('Start').text) * sampling_rate
-                duration = float(event.find('Duration').text) * sampling_rate
+                duration = duration_check * sampling_rate
                 start_idx = int(start_time)
                 end_idx = int(start_time + duration)
-                labels[start_idx:end_idx] = 0  # Marking apnea events with 0
+                labels[start_idx:end_idx] = 0  # Only marking apnea events with 0
         
         raw_ch = raw_ch_df.values
 
