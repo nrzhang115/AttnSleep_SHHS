@@ -14,12 +14,16 @@ from scipy.signal import resample
 # Downsampling the majority class
 def downsample_data(data, labels):
     unique, counts = np.unique(labels, return_counts=True)
+    print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
+    
     minority_class = unique[np.argmin(counts)]
     majority_class = unique[np.argmax(counts)]
     
     minority_class_data = data[labels == minority_class]
     majority_class_data = data[labels == majority_class]
     
+    print(f"Minority class size: {len(minority_class_data)}")
+    print(f"Majority class size: {len(majority_class_data)}")
     num_to_select = len(minority_class_data)
     selected_indices = np.random.choice(len(majority_class_data), num_to_select, replace=False)
     downsampled_majority_class_data = majority_class_data[selected_indices]
@@ -64,6 +68,10 @@ def load_folds_data_shhs(np_data_path, n_folds):
     # Concatenate all data and labels
     all_data = np.concatenate(all_data, axis=0)
     all_labels = np.concatenate(all_labels, axis=0)
+    
+    # Ensure all_labels is 2D
+    if all_labels.ndim == 1:
+        all_labels = np.expand_dims(all_labels, axis=-1)
     
     total_samples = len(all_data)
     
