@@ -14,6 +14,11 @@ from scipy.signal import resample
 # Downsampling the majority class
 def downsample_data(data, labels):
     print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
+    
+    # Flatten the labels if they are not already 1D
+    if labels.ndim > 1:
+        labels = labels.flatten()
+        
     unique, counts = np.unique(labels, return_counts=True)
     print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
     
@@ -37,6 +42,7 @@ def downsample_data(data, labels):
     
     unique, counts = np.unique(downsampled_labels, return_counts=True)
     print("Class Distribution after downsampling:", dict(zip(unique, counts)))
+    print(f"Downsampled data shape: {downsampled_data.shape}, Downsampled labels shape: {downsampled_labels.shape}")
     
     return downsampled_data[indices], downsampled_labels[indices]
 ############################################################################
