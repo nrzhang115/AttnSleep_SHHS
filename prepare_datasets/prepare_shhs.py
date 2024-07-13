@@ -38,7 +38,7 @@ def main():
         os.mkdir(args.output_dir)
         
     # Get selected shhs file
-    ids = pd.read_csv("selected_shhs1_files.txt", header=None, names='a')
+    ids = pd.read_csv("selected_shhs1_files.txt", header=None, names=['a'])
     ids = ids['a'].values.tolist()
 
     edf_fnames = [os.path.join(args.data_dir, i + ".edf") for i in ids]
