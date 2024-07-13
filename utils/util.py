@@ -8,16 +8,18 @@ import numpy as np
 from glob import glob
 import math
 from scipy.signal import resample
+from scipy.stats import mode
 
 
 ####################################################################
 # Downsampling the majority class
 def downsample_data(data, labels):
-    print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
     
-    # Flatten the labels if they are not already 1D
-    if labels.ndim > 1:
-        labels = labels.flatten()
+    # Ensure labels are 1D by taking the mode along the time axis
+    labels = mode(labels, axis=1).mode.flatten()
+    
+    print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
+
         
     unique, counts = np.unique(labels, return_counts=True)
     print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
