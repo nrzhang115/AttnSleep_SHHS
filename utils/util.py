@@ -30,7 +30,8 @@ def downsample_data(data, labels):
     indices = np.arange(len(downsampled_labels))
     np.random.shuffle(indices)
     
-    print("Class Distribution after downsampling:", np.bincount(downsampled_labels))
+    unique, counts = np.unique(downsampled_labels, return_counts=True)
+    print("Class Distribution after downsampling:", dict(zip(unique, counts)))
     
     return downsampled_data[indices], downsampled_labels[indices]
 ############################################################################
@@ -81,8 +82,8 @@ def load_folds_data_shhs(np_data_path, n_folds):
     test_data = all_data[test_indices]
     test_labels = all_labels[test_indices]
     
-    print(f"Training set before downsampling: {np.bincount(train_labels)}")
-    print(f"Testing set before downsampling: {np.bincount(test_labels)}")
+    print(f"Training set shape before downsampling: {train_labels.shape}")
+    print(f"Testing set shape: {test_labels.shape}")
     
     # Perform downsampling on training data
     train_data, train_labels = downsample_data(train_data, train_labels)
