@@ -57,8 +57,8 @@ def data_generator_np(training_files, subject_files, batch_size):
     if test_dataset.y_data.ndim > 1:
         test_dataset.y_data = mode(test_dataset.y_data, axis=1).mode.flatten()
 
-    print(f"Flattened train dataset y_data shape: {train_dataset.y_data.shape}")
-    print(f"Flattened test dataset y_data shape: {test_dataset.y_data.shape}")
+    # print(f"Flattened train dataset y_data shape: {train_dataset.y_data.shape}")
+    # print(f"Flattened test dataset y_data shape: {test_dataset.y_data.shape}")
 
     # to calculate the ratio for the CAL
     all_ys = np.concatenate((train_dataset.y_data, test_dataset.y_data))
