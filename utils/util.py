@@ -16,7 +16,7 @@ from scipy.stats import mode
 def downsample_data(data, labels):
     
     # Ensure labels are 1D by taking the mode along the time axis
-    labels = mode(labels, axis=1).mode.flatten()
+    # labels = mode(labels, axis=1).mode.flatten()
     
     print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
 
@@ -98,6 +98,10 @@ def load_folds_data_shhs(np_data_path, n_folds):
     train_labels = all_labels[train_indices]
     test_data = all_data[test_indices]
     test_labels = all_labels[test_indices]
+    
+    # Reduce labels to 1D by taking the mode
+    train_labels = mode(train_labels, axis=1).mode.flatten()
+    test_labels = mode(test_labels, axis=1).mode.flatten()
     
     print(f"Training set shape before downsampling: {train_labels.shape}")
     print(f"Testing set shape: {test_labels.shape}")

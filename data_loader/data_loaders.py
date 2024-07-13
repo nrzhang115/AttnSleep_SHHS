@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 import os
 import numpy as np
+from scipy.stats import mode
 
 class LoadDataset_from_numpy(Dataset):
     # Initialize your data, download, etc.
@@ -15,10 +16,6 @@ class LoadDataset_from_numpy(Dataset):
         for np_file in np_dataset[1:]:
             X_train = np.vstack((X_train, np.load(np_file)["x"]))
             y_train = np.append(y_train, np.load(np_file)["y"])
-            
-        # Ensure y_train is 1D
-        if y_train.ndim > 1:
-            y_train = y_train.flatten()
 
         self.len = X_train.shape[0]
         self.x_data = torch.from_numpy(X_train)
@@ -54,9 +51,11 @@ def data_generator_np(training_files, subject_files, batch_size):
     print(f"Train dataset y_data shape: {train_dataset.y_data.shape}")
     print(f"Test dataset y_data shape: {test_dataset.y_data.shape}")
     
-    # Flatten y_data to ensure compatibility for concatenation
-    train_dataset.y_data = train_dataset.y_data.flatten()
-    test_dataset.y_data = test_dataset.y_data.flatten()
+    # Ensure y_data arrays are 1D by taking the mode along the time axis
+    if train_dataset.y_data.ndim > 1:
+        train_dataset.y_data = mode(train_dataset.y_data, axis=1).mode.flatten()
+    if test_dataset.y_data.ndim > 1:
+        test_dataset.y_data = mode(test_dataset.y_data, axis=1).mode.flatten()
 
     print(f"Flattened train dataset y_data shape: {train_dataset.y_data.shape}")
     print(f"Flattened test dataset y_data shape: {test_dataset.y_data.shape}")
