@@ -47,6 +47,15 @@ def data_generator_np(training_files, subject_files, batch_size):
     
     # Print shapes to debug
     print(f"Train dataset size: {train_dataset.len}, Test dataset size: {test_dataset.len}")
+    print(f"Train dataset y_data shape: {train_dataset.y_data.shape}")
+    print(f"Test dataset y_data shape: {test_dataset.y_data.shape}")
+    
+    # Ensure y_data arrays have the same number of dimensions
+    if train_dataset.y_data.ndim != test_dataset.y_data.ndim:
+        if train_dataset.y_data.ndim < test_dataset.y_data.ndim:
+            train_dataset.y_data = np.expand_dims(train_dataset.y_data, axis=-1)
+        else:
+            test_dataset.y_data = np.expand_dims(test_dataset.y_data, axis=-1)
 
     # to calculate the ratio for the CAL
     all_ys = np.concatenate((train_dataset.y_data, test_dataset.y_data))
