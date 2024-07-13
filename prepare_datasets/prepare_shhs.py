@@ -24,7 +24,7 @@ EPOCH_SEC_SIZE = 30
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/home/z5298768/SHHS_edfs",
+    parser.add_argument("--data_dir", type=str, default="/srv/scratch/speechdata/sleep_data/SHHS/edfs/shhs1",
                         help="File path to the PSG files.")
     parser.add_argument("--ann_dir", type=str, default="/home/z5298768/SHHS_annotations",
                         help="File path to the annotation files.")
