@@ -13,6 +13,7 @@ from scipy.signal import resample
 ####################################################################
 # Downsampling the majority class
 def downsample_data(data, labels):
+    print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
     unique, counts = np.unique(labels, return_counts=True)
     print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
     

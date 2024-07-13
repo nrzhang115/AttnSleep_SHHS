@@ -15,6 +15,10 @@ class LoadDataset_from_numpy(Dataset):
         for np_file in np_dataset[1:]:
             X_train = np.vstack((X_train, np.load(np_file)["x"]))
             y_train = np.append(y_train, np.load(np_file)["y"])
+            
+        # Ensure y_train is 1D
+        if y_train.ndim > 1:
+            y_train = y_train.flatten()
 
         self.len = X_train.shape[0]
         self.x_data = torch.from_numpy(X_train)
@@ -50,12 +54,12 @@ def data_generator_np(training_files, subject_files, batch_size):
     print(f"Train dataset y_data shape: {train_dataset.y_data.shape}")
     print(f"Test dataset y_data shape: {test_dataset.y_data.shape}")
     
-    # Ensure y_data arrays have the same number of dimensions
-    if train_dataset.y_data.ndim != test_dataset.y_data.ndim:
-        if train_dataset.y_data.ndim < test_dataset.y_data.ndim:
-            train_dataset.y_data = np.expand_dims(train_dataset.y_data, axis=-1)
-        else:
-            test_dataset.y_data = np.expand_dims(test_dataset.y_data, axis=-1)
+    # Flatten y_data to ensure compatibility for concatenation
+    train_dataset.y_data = train_dataset.y_data.flatten()
+    test_dataset.y_data = test_dataset.y_data.flatten()
+
+    print(f"Flattened train dataset y_data shape: {train_dataset.y_data.shape}")
+    print(f"Flattened test dataset y_data shape: {test_dataset.y_data.shape}")
 
     # to calculate the ratio for the CAL
     all_ys = np.concatenate((train_dataset.y_data, test_dataset.y_data))
