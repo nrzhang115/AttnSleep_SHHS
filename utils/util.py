@@ -98,8 +98,8 @@ def load_folds_data_shhs(np_data_path, n_folds):
     print(f"Train file path: {train_file_path}")
     print(f"Test file path: {test_file_path}")
     
-    
-    folds_data[fold_id] = [train_file_path, test_file_path]
+    # fold_id = 0
+    folds_data[0] = [train_file_path, test_file_path]
     
     return folds_data
 
