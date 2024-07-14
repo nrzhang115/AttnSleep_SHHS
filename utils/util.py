@@ -107,7 +107,7 @@ def load_folds_data_shhs(np_data_path, n_folds):
     print(f"Testing set shape: {test_labels.shape}")
     
     # Perform downsampling on training data
-    # train_data, train_labels = downsample_data(train_data, train_labels)
+    train_data, train_labels = downsample_data(train_data, train_labels)
     
     # Save data to new file paths
     train_file_path = os.path.join(np_data_path, "train_data_shhs.npz")

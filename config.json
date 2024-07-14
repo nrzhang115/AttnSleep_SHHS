@@ -1,5 +1,5 @@
 {
-    "name": "SHHS_Exp1",
+    "name": "SHHS_with_downsampling",
     "n_gpu": 1,
 
     "arch": {
