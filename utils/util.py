@@ -9,44 +9,66 @@ from glob import glob
 import math
 from scipy.signal import resample
 from scipy.stats import mode
-
+from imblearn.over_sampling import SMOTE
 
 ####################################################################
 # Downsampling the majority class
-def downsample_data(data, labels):
+# def downsample_data(data, labels):
     
-    # Ensure labels are 1D by taking the mode along the time axis
-    # labels = mode(labels, axis=1).mode.flatten()
+#     # Ensure labels are 1D by taking the mode along the time axis
+#     # labels = mode(labels, axis=1).mode.flatten()
     
-    print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
+#     print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
 
         
+#     unique, counts = np.unique(labels, return_counts=True)
+#     print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
+    
+#     minority_class = unique[np.argmin(counts)]
+#     majority_class = unique[np.argmax(counts)]
+    
+#     minority_class_data = data[labels == minority_class]
+#     majority_class_data = data[labels == majority_class]
+    
+#     print(f"Minority class size: {len(minority_class_data)}")
+#     print(f"Majority class size: {len(majority_class_data)}")
+#     num_to_select = len(minority_class_data)
+#     selected_indices = np.random.choice(len(majority_class_data), num_to_select, replace=False)
+#     downsampled_majority_class_data = majority_class_data[selected_indices]
+    
+#     downsampled_data = np.concatenate((minority_class_data, downsampled_majority_class_data), axis=0)
+#     downsampled_labels = np.array([minority_class] * len(minority_class_data) + [majority_class] * num_to_select)
+    
+#     indices = np.arange(len(downsampled_labels))
+#     np.random.shuffle(indices)
+    
+#     unique, counts = np.unique(downsampled_labels, return_counts=True)
+#     print("Class Distribution after downsampling:", dict(zip(unique, counts)))
+#     print(f"Downsampled data shape: {downsampled_data.shape}, Downsampled labels shape: {downsampled_labels.shape}")
+    
+#     return downsampled_data[indices], downsampled_labels[indices]
+############################################################################
+def balance_data_with_smote(data, labels):
+    print(f"Initial data shape: {data.shape}, labels shape: {labels.shape}")
+
     unique, counts = np.unique(labels, return_counts=True)
-    print(f"Counts per class before downsampling: {dict(zip(unique, counts))}")
-    
-    minority_class = unique[np.argmin(counts)]
-    majority_class = unique[np.argmax(counts)]
-    
-    minority_class_data = data[labels == minority_class]
-    majority_class_data = data[labels == majority_class]
-    
-    print(f"Minority class size: {len(minority_class_data)}")
-    print(f"Majority class size: {len(majority_class_data)}")
-    num_to_select = len(minority_class_data)
-    selected_indices = np.random.choice(len(majority_class_data), num_to_select, replace=False)
-    downsampled_majority_class_data = majority_class_data[selected_indices]
-    
-    downsampled_data = np.concatenate((minority_class_data, downsampled_majority_class_data), axis=0)
-    downsampled_labels = np.array([minority_class] * len(minority_class_data) + [majority_class] * num_to_select)
-    
-    indices = np.arange(len(downsampled_labels))
-    np.random.shuffle(indices)
-    
-    unique, counts = np.unique(downsampled_labels, return_counts=True)
-    print("Class Distribution after downsampling:", dict(zip(unique, counts)))
-    print(f"Downsampled data shape: {downsampled_data.shape}, Downsampled labels shape: {downsampled_labels.shape}")
-    
-    return downsampled_data[indices], downsampled_labels[indices]
+    print(f"Counts per class before balancing: {dict(zip(unique, counts))}")
+
+    # Flatten the labels if they are 2D
+    if labels.ndim > 1:
+        labels = labels.flatten()
+
+    smote = SMOTE()
+    data_resampled, labels_resampled = smote.fit_resample(data.reshape(len(data), -1), labels)
+
+    # Reshape the data back to its original shape if needed
+    data_resampled = data_resampled.reshape(-1, data.shape[1], data.shape[2])
+
+    unique, counts = np.unique(labels_resampled, return_counts=True)
+    print("Class Distribution after SMOTE:", dict(zip(unique, counts)))
+    print(f"Balanced data shape: {data_resampled.shape}, Balanced labels shape: {labels_resampled.shape}")
+
+    return data_resampled, labels_resampled
 ############################################################################
 def load_folds_data_shhs(np_data_path, n_folds):
     files = sorted(glob(os.path.join(np_data_path, "*.npz")))
@@ -107,8 +129,8 @@ def load_folds_data_shhs(np_data_path, n_folds):
     print(f"Testing set shape: {test_labels.shape}")
     
     # Perform downsampling on training data
-    train_data, train_labels = downsample_data(train_data, train_labels)
-    
+    # train_data, train_labels = downsample_data(train_data, train_labels)
+    train_data, train_labels = balance_data_with_smote(train_data, train_labels)
     # Save data to new file paths
     train_file_path = os.path.join(np_data_path, "train_data_shhs.npz")
     test_file_path = os.path.join(np_data_path, "test_data_shhs.npz")
